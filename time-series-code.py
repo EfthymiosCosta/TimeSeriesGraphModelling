@@ -64,10 +64,12 @@ for i, freq, in enumerate(frequencies):
         tmp2 = np.argmax(frequencies >= (B+frequencies[tmp]))
         if tmp2!=0:
             f_prime_idx += [ tmp2 ]
+            
+if frequencies[f_prime_idx[-1]]>(0.5-B/2): f_prime_idx.pop()
 f_prime_idx = np.array(f_prime_idx)
 
 #Efthymios index
-f_prime_idx = np.array([98,274,490,686,882])
+#f_prime_idx = np.array([98,274,490,686,882])
 
 ### calculate S^-1(f) for all f given
 invSf = np.empty_like(Sf)
@@ -94,22 +96,24 @@ gammaf['gammafa'] = gammaf['gamma'][f_prime_idx, :]
 
 W = -2*K* np.sum(np.log(gammaf['gammafa']), axis=0)
 
+tmp = np.argsort(-W)
+W = W[tmp]
+jks2 = [jks2[i] for i in tmp]
+
+
 A = len(f_prime_idx)
 q = r-1
-
 alpha = A
 beta = (K-q)/(2*K)
-
 scale = 1/beta
-
 L = (r**2-r)//2
-Ci = np.arange(1, L+1)
+Ci = np.arange(L, 0, -1)
 alpha_hypothesis = 0.01
 Ci = gamma.ppf((1-(alpha_hypothesis/Ci)), A, scale=scale)
 
 tmp = 'Ci(' + str(alpha_hypothesis) + ')'
 d = {'W':W, tmp:Ci, '(j, k)': jks2}
-df = pd.DataFrame(data=d).set_index('(j, k)').sort_values('W', ascending=False, inplace=True)
+df = pd.DataFrame(data=d).set_index('(j, k)')
 print(df)
  
     
