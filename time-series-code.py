@@ -9,6 +9,7 @@ Created on Mon Mar 20 18:11:26 2023
 import numpy as np
 import os
 from scipy.stats import gamma
+import pandas as pd
 
 # to change current directory
 class cd:
@@ -49,10 +50,10 @@ for r_idx in range((r+1)*r//2):
     im = f(i2+1, idx_start)
     Sf[i-1, j-1, :] = real + 1j*im
     if i!=j:
-        Sf[j-1, i-1,:] = Sf[i-1, j-1, :]
+        Sf[j-1, i-1,:] = np.conj(Sf[i-1, j-1, :])
  ##############################################################################       
 
-#c## alculate indexes if f' values
+### calculate indexes if f' values
 assert(np.all(np.sort(frequencies) == frequencies))
 f_prime_idx = [np.argmax(frequencies >= B/2)]
 for i, freq, in enumerate(frequencies):
@@ -65,10 +66,14 @@ for i, freq, in enumerate(frequencies):
             f_prime_idx += [ tmp2 ]
 f_prime_idx = np.array(f_prime_idx)
 
+#Efthymios index
+f_prime_idx = np.array([98,274,490,686,882])
+
 ### calculate S^-1(f) for all f given
 invSf = np.empty_like(Sf)
 for i in range(nf):
     invSf[:,:,i] = np.linalg.inv(Sf[:,:,i])
+    #assert(np.allclose(invSf[:,:,i]@Sf[:,:,i], np.eye(5)))
 
 
 # calculate gamma(f) for all f given
@@ -80,7 +85,7 @@ for i, jk in enumerate(jks2):
     j, k = jk
     num = invSf[j-1,k-1,:] * invSf[j-1,k-1,:].conj()
     denom = invSf[j-1,j-1,:]*invSf[k-1,k-1,:]
-    #assert(np.max(abs((num/denom).imag))<0.0001)
+    assert(np.max(abs((num/denom).imag))<0.0001)
     tmp[:,i] = num/denom
 gammaf['gamma'] = tmp
 
@@ -102,12 +107,10 @@ Ci = np.arange(1, L+1)
 alpha_hypothesis = 0.01
 Ci = gamma.ppf((1-(alpha_hypothesis/Ci)), A, scale=scale)
 
-print(Ci > W) #TODO all fales?!
-
-print(Ci)
-print('='*40)
-print(W)
-
+tmp = 'Ci(' + str(alpha_hypothesis) + ')'
+d = {'W':W, tmp:Ci, '(j, k)': jks2}
+df = pd.DataFrame(data=d).set_index('(j, k)').sort_values('W', ascending=False, inplace=True)
+print(df)
  
     
     
