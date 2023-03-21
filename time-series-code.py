@@ -87,7 +87,7 @@ f_prime_idx = np.array(f_prime_idx)
 
 gammaf['gammafa'] = gammaf['gamma'][f_prime_idx, :]
 
-W = -2*K* np.sum(np.log(gammaf['gammafa']), axis=1)
+W = -2*K* np.sum(np.log(gammaf['gammafa']), axis=0)
 
 A = len(f_prime_idx)
 q = r-1
@@ -97,7 +97,7 @@ beta = (K-q)/(2*K)
 
 scale = 1/beta
 
-L = len(f_prime_idx)
+L = (r**2-r)//2
 Ci = np.arange(1, L+1)
 alpha_hypothesis = 0.01
 Ci = gamma.ppf((1-alpha_hypothesis/Ci), A, scale=scale)
