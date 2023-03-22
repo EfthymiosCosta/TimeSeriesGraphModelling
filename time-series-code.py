@@ -11,6 +11,7 @@ import os
 from scipy.stats import gamma
 import pandas as pd
 import matplotlib.pyplot as plt
+import networkx
 
 # to change current directory
 class cd:
@@ -128,7 +129,6 @@ G.add_edges_from(jks2[:8])
 kept_edges = jks2[:nedges]
 discarded_edges = jks2[nedges:]
 
-
 save = False
 ylimits = [0, np.max(gammaf['gamma'])]
 for i, jk in enumerate(jks2_unordered):
@@ -137,7 +137,7 @@ for i, jk in enumerate(jks2_unordered):
     else: linestyle = ':'
     plt.plot(frequencies, gammaf['gamma'][:,i], label=str(jk), linestyle = linestyle)
 plt.ylim(ylimits)
-plt.title('Partial coherencies')
+plt.title('Partial coherences')
 plt.xlabel('$f$')
 plt.legend()
 if save: plt.savefig('figures/pc.pdf', bbox_inches='tight')
@@ -151,7 +151,7 @@ for jk in kept_edges:
     else: linestyle = ':'
     plt.plot(frequencies, gammaf['gamma'][:,i], label=str(jk), linestyle = linestyle)
 plt.ylim(ylimits)
-plt.title('Partial coherencies (kept edges)')
+plt.title('Partial coherences (kept edges)')
 plt.xlabel('$f$')
 plt.legend()
 if save: plt.savefig('figures/pc_kept.pdf', bbox_inches='tight')
@@ -162,15 +162,48 @@ for jk in discarded_edges:
         linestyle = '-'
     else: linestyle = ':'
     plt.plot(frequencies, gammaf['gamma'][:,i], label=str(jk), linestyle = linestyle)
+    
+
 plt.ylim(ylimits)
-plt.title('Partial coherencies (discarded edges)')
+plt.title('Partial coherences (discarded edges)')
 plt.xlabel('$f$')
 plt.legend()
 if save: plt.savefig('figures/pc_discarded.pdf', bbox_inches='tight')
 plt.show()
 
 
+n_plots = len(jks2_unordered)
+n_cols = 4
+n_rows = 4
+fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(12, 12))
+row_idx = 0
+col_idx = 0
+for i, jk in enumerate(jks2_unordered):
+    if col_idx > 3:
+        row_idx += 1
+        col_idx = row_idx
+        for jmis in range(col_idx):
+            fig.delaxes(axes[row_idx][jmis])
+    
+    ax = axes[row_idx, col_idx]
 
+    if jk in kept_edges: 
+        linestyle = '-'
+    else:
+        linestyle = '-'
+    ax.plot(frequencies, gammaf['gamma'][:, i], label=str(jk), linestyle=linestyle)
+
+    ax.set_ylim([0, np.max(gammaf['gamma'])])
+    ax.set_title(f'Partial coherences for {jk}')
+    ax.set_xlabel('$f$')
+    ax.legend()
+    col_idx += 1
+
+if save:
+    plt.savefig('figures/pc_panelled.pdf', tight)
+    
+plt.tight_layout()
+plt.show()
 
 
 
