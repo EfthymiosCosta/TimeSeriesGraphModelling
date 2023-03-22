@@ -10,6 +10,7 @@ import numpy as np
 import os
 from scipy.stats import gamma
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # to change current directory
 class cd:
@@ -94,10 +95,10 @@ gammaf['gamma'] = tmp
 # selecting nly the fa (independent) needed
 gammaf['gammafa'] = gammaf['gamma'][f_prime_idx, :]
 
-W = -2*K* np.sum(np.log(gammaf['gammafa']), axis=0)
-
+W = -2*K*np.sum(np.log(1-gammaf['gammafa']), axis=0)
 tmp = np.argsort(-W)
 W = W[tmp]
+jks2_unordered = jks2
 jks2 = [jks2[i] for i in tmp]
 
 
@@ -108,13 +109,73 @@ beta = (K-q)/(2*K)
 scale = 1/beta
 L = (r**2-r)//2
 Ci = np.arange(L, 0, -1)
-alpha_hypothesis = 0.01
+alpha_hypothesis = 0.05
 Ci = gamma.ppf((1-(alpha_hypothesis/Ci)), A, scale=scale)
 
 tmp = 'Ci(' + str(alpha_hypothesis) + ')'
 d = {'W':W, tmp:Ci, '(j, k)': jks2}
 df = pd.DataFrame(data=d).set_index('(j, k)')
 print(df)
+
+
+nedges = np.argmin(W>Ci) #assumes atleast one edge missing
+import networkx as nx
+G = nx.Graph()
+G.add_edges_from(jks2[:8])
+#nx.draw(G, pos=nx.spring_layout(G))
+
+
+kept_edges = jks2[:nedges]
+discarded_edges = jks2[nedges:]
+
+
+save = False
+ylimits = [0, np.max(gammaf['gamma'])]
+for i, jk in enumerate(jks2_unordered):
+    if jk in kept_edges: 
+        linestyle = '-'
+    else: linestyle = ':'
+    plt.plot(frequencies, gammaf['gamma'][:,i], label=str(jk), linestyle = linestyle)
+plt.ylim(ylimits)
+plt.title('Partial coherencies')
+plt.xlabel('$f$')
+plt.legend()
+if save: plt.savefig('figures/pc.pdf', bbox_inches='tight')
+plt.show()
+
+
+for jk in kept_edges:
+    i = jks2_unordered.index(jk)
+    if jk in kept_edges: 
+        linestyle = '-'
+    else: linestyle = ':'
+    plt.plot(frequencies, gammaf['gamma'][:,i], label=str(jk), linestyle = linestyle)
+plt.ylim(ylimits)
+plt.title('Partial coherencies (kept edges)')
+plt.xlabel('$f$')
+plt.legend()
+if save: plt.savefig('figures/pc_kept.pdf', bbox_inches='tight')
+plt.show()
+for jk in discarded_edges:
+    i = jks2_unordered.index(jk)
+    if jk in kept_edges: 
+        linestyle = '-'
+    else: linestyle = ':'
+    plt.plot(frequencies, gammaf['gamma'][:,i], label=str(jk), linestyle = linestyle)
+plt.ylim(ylimits)
+plt.title('Partial coherencies (discarded edges)')
+plt.xlabel('$f$')
+plt.legend()
+if save: plt.savefig('figures/pc_discarded.pdf', bbox_inches='tight')
+plt.show()
+
+
+
+
+
+
+
+
  
     
     
